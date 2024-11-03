@@ -4,6 +4,8 @@ from reminder_handler import remind_membership, remind_membership_second # Им�
 from payment_handler import request_payment_receipt  # Подключаем необходимые функции
 from approval_handler import handle_approval # Импортируем из нового файла
 from reminder_handler import send_followup_message, handle_yes, handle_no # Импортируем функцию из reminder_handler
+from datetime import timedelta
+
 
 import logging
 
@@ -11,7 +13,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-manager_id = 864464357  # Замените на реальный ID менеджера
+manager_ids = [864464357,648034216]  # Замените числа на реальные ID всех менеджеров
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -25,16 +27,23 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if update.message:
         # Вызвано командой /start
         await update.message.reply_text(
-            "👋 Welcome to the Association for the Professional Development of English Teachers in Kazakhstan!\n"
-            "We're glad to have you here.\nDo *YOU* want to become a member of KAZAELT?",
+            text = (
+    "👋 **Welcome to the Association for the Professional Development of English Teachers in Kazakhstan!**\n\n"
+    "We are delighted to have you join us on this journey of growth and professional development. Our community is "
+    "dedicated to empowering English teachers across the country.\n\n"
+    "✨ *Do YOU want to become a member of KAZAELT and be part of an inspiring network of educators?* ✨"
+),
+
             reply_markup=reply_markup,
             parse_mode="Markdown"
         )
     elif update.callback_query:
         # Вызвано кнопкой "Back"
         await update.callback_query.message.edit_text(
-            "👋 Welcome to the Association for the Professional Development of English Teachers in Kazakhstan!\n"
-            "We're glad to have you here.\nDo *YOU* want to become a member of KAZAELT?",
+           "👋 **Welcome to the Association for the Professional Development of English Teachers in Kazakhstan!**\n\n"
+    "We are delighted to have you join us on this journey of growth and professional development. Our community is "
+    "dedicated to empowering English teachers across the country.\n\n"
+    "✨ *Do YOU want to become a member of KAZAELT and be part of an inspiring network of educators?* ✨",
             reply_markup=reply_markup,
             parse_mode="Markdown"
         )
@@ -52,24 +61,26 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         ]
         new_reply_markup = InlineKeyboardMarkup(new_keyboard)
         await query.edit_message_text(
-    "📚 **The Association for the Professional Development of English Teachers in Kazakhstan**\n\n"
-    "Our mission is to support and empower English teachers across the country by enhancing their skills and knowledge. "
+     "📚 **The Association for the Professional Development of English Teachers in Kazakhstan** \n\n"
+    "Our mission is to support and empower English teachers across the country by enhancing their skills and knowledge\\. "
     "We provide engaging **workshops**, **seminars**, and a vibrant network of professionals, all designed to help you grow and succeed in your career.\n\n"
     "🌟 *Would you like to join us now?* 🌟",
-    reply_markup=new_reply_markup
+    reply_markup=new_reply_markup,
+    parse_mode="Markdown"
+
 )
 
     elif query.data == "no":
-        await query.edit_message_text("Thank you for your interest! If you change your mind, we are always happy to welcome you into our ranks.")
-        context.job_queue.run_once(remind_membership, 10, data=query.message.chat_id)
+        await query.edit_message_text("🙏Thank you for your interest! If you change your mind, we are always happy to welcome you into our ranks.")
+        context.job_queue.run_once(remind_membership, timedelta(days=1).total_seconds(), data=query.message.chat_id)
     elif query.data == "notyet":
-        await query.edit_message_text("Спасибо за ознакомление! Мы вернёмся к вам через 10 секунд.")
-        context.job_queue.run_once(remind_membership, 10, data=query.message.chat_id)
+        await query.edit_message_text("✨ That’s perfectly fine! Take your time, and we’ll follow up with you soon.")
+        context.job_queue.run_once(remind_membership, timedelta(days=1).total_seconds(), data=query.message.chat_id)
     elif query.data == "no_second":
-        await query.edit_message_text("Понимаем, что вы ещё думаете! Мы вернёмся к вам через 20 секунд.")
-        context.job_queue.run_once(remind_membership_second, 20, data=query.message.chat_id)
+        await query.edit_message_text(" 💭We understand completely! Feel free to take some more time to think it over.")
+        context.job_queue.run_once(remind_membership_second, timedelta(weeks=1).total_seconds(), data=query.message.chat_id)
     elif query.data == "no_final":
-        await query.edit_message_text("Thanks for the reply. We respect your choice and will always be glad to see you in the future!")
+        await query.edit_message_text(" 🌟Thanks for the reply. We respect your choice and will always be glad to see you in the future!")
     # Остальной код для других кнопок...
     elif query.data == "more":
         # Отправляем информацию о ссылках и кнопки "I've read" и "I'm ready to join"
@@ -95,19 +106,20 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     elif query.data == "go":
         # Информация об оплате
         payment_info = (
-            "💳 *Отлично!* Благодарим за интерес к вступлению в Казахстанскую Ассоциацию учителей английского языка.\n\n"
-            "Можете ознакомиться с сайтом Ассоциации: [KazAELT](https://kazaelt.kz), "
-            "а также с Instagram аккаунтом [KazAELT Instagram](https://instagram.com/kazaelt?igshid=MzRlODBiNWFlZA==).\n\n"
-            "По этой ссылке Вы можете провести оплату в Kaspi. Стоимость членства за одного человека на 12 месяцев составляет 25,000 тенге:\n"
-            "[Kaspi](https://kaspi.kz/pay/_gate?action=service_with_subservice&service_id=3025&subservice_id=18043&region_id=19)\n\n"
-            "В назначениях выберите, пожалуйста, “Вебинар”. После оплаты отправьте, пожалуйста, чек в формате PDF."
+           "💳 *Great!* Thank you for your interest in joining the Kazakhstan Association of English Language Teachers.\n\n"
+"You can learn more about our Association on our website: [KazAELT](https://kazaelt.kz), "
+"and follow us on Instagram: [KazAELT Instagram](https://instagram.com/kazaelt?igshid=MzRlODBiNWFlZA==).\n\n"
+"To make the payment via Kaspi, please use the following link. The membership fee for one person for 12 months is 25,000 KZT:\n"
+"[Kaspi](https://kaspi.kz/pay/_gate?action=service_with_subservice&service_id=3025&subservice_id=18043&region_id=19)\n\n"
+"Please select “Webinar” in the payment purpose. After making the payment, kindly send the receipt in PDF format."
+
         )
 
         # Клавиатура с кнопками оплаты
         payment_keyboard = [
             [InlineKeyboardButton("💰 Pay Now", url='https://kaspi.kz/pay/_gate?action=service_with_subservice&service_id=3025&subservice_id=18043&region_id=19')],
             [InlineKeyboardButton("📤 I have paid", callback_data='paid')],
-            [InlineKeyboardButton("🔙 Back", callback_data='back_detailed')]
+            ##[InlineKeyboardButton("🔙 Back", callback_data='back_detailed')]
         ]
         payment_reply_markup = InlineKeyboardMarkup(payment_keyboard)
 
@@ -121,20 +133,21 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         # Вызов функции для запроса изображения чека
         await request_payment_receipt(update, context)
     elif query.data == "back_detailed":
-    # Возвращение к описанию ассоциации
+        # Возвращение к описанию ассоциации
         back_keyboard = [
-        [InlineKeyboardButton("🚀 GO", callback_data="go")],
-        [InlineKeyboardButton("↩️ Back", callback_data="back")]
-    ]
-    back_reply_markup = InlineKeyboardMarkup(back_keyboard)
-    await query.edit_message_text(
-        "📚 **The Association for the Professional Development of English Teachers in Kazakhstan**\n\n"
-        "Our mission is to support and empower English teachers across the country by enhancing their skills and knowledge. "
-        "We provide engaging **workshops**, **seminars**, and a vibrant network of professionals, all designed to help you grow and succeed in your career.\n\n"
-        "🌟 *Would you like to join us now?* 🌟",
-        parse_mode="MarkdownV2",
-        reply_markup=back_reply_markup  # Замените на правильную переменную
-    )
+            [InlineKeyboardButton("🚀 GO", callback_data="go")],
+            [InlineKeyboardButton("↩️ Back", callback_data="back")]
+        ]
+        back_reply_markup = InlineKeyboardMarkup(back_keyboard)
+        await query.edit_message_text(
+     "📚 **The Association for the Professional Development of English Teachers in Kazakhstan** \n\n"
+    "Our mission is to support and empower English teachers across the country by enhancing their skills and knowledge\\. "
+    "We provide engaging **workshops**, **seminars**, and a vibrant network of professionals, all designed to help you grow and succeed in your career.\n\n"
+    "🌟 *Would you like to join us now?* 🌟",
+     parse_mode="MarkdownV2",
+    reply_markup=new_reply_markup
+) 
+
 
 
     if not query or not query.from_user:
@@ -160,8 +173,8 @@ async def button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await context.bot.send_message(
             chat_id=chat_id,
             text="Please complete this form to continue:\n"
-
-            
+            "\n"
+            "\n"
                  "https://docs.google.com/forms/d/e/1FAIpQLSdbORRAo-Ahp8T-XEgdnRNJl1R96m4wj1plj-b6og2oxPOU7A/viewform"
         )
         logger.info(f"Ссылка на форму отправлена пользователю {chat_id}")

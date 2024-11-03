@@ -60,10 +60,38 @@ async def handle_city_selection(update: Update, context: ContextTypes.DEFAULT_TY
     # Получение ссылки для выбранного города
     if selected_city in city_links:
         link = city_links[selected_city]
+        chat_id = query.from_user.id
+
+        # Отправка ссылки на выбранный чат
         await context.bot.send_message(
-            chat_id=query.from_user.id,
-        text=f"🌍 Here is the link for {selected_city}: {link}\n\nYou can join the chat for your city to stay connected and informed!"
+            chat_id=chat_id,
+            text=f"🌍 Here is the link for {selected_city}: {link}\n\nYou can join the chat for your city to stay connected and informed!"
         )
-        logger.info(f"Ссылка для {selected_city} отправлена пользователю {query.from_user.id}")
+        logger.info(f"Ссылка для {selected_city} отправлена пользователю {chat_id}")
+
+        # Отправка последующего сообщения через 15 секунд
+        context.job_queue.run_once(send_welcome_message, 15, chat_id=chat_id)
     else:
         logger.error(f"Неизвестный город: {selected_city}")
+
+async def send_welcome_message(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Отправляет приветственное сообщение через 15 секунд после отправки ссылки"""
+    chat_id = context.job.chat_id
+    welcome_text = (
+        "✨ Once again, welcome to Kazaelt! We look forward to growing and learning with you.\n\n"
+        "If you have any suggestions, local coordinators are also available to help you.\n"
+        "To find the contact details of your regional coordinator, please reach out to the head of the coordinators:\n"
+        "📞 **Gulfairuz teacher**: +7 705 825 0773\n\n"
+        "Membership manager:\n"
+        "📞 **Aizhan teacher**: +7 775 896 1108\n\n"
+        "We are here to support each other and develop together! 🌟"
+    )
+
+    # Отправка приветственного сообщения
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text=welcome_text,
+        parse_mode="Markdown"
+    )
+    logger.info(f"Приветственное сообщение отправлено пользователю {chat_id}")
+    

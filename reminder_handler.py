@@ -64,10 +64,6 @@ async def handle_yes(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         "Feel free to ask any questions [here](https://t.me/c/1864095672/2659).\n\n"
         "We are here to support each other and develop together.\n\n"
         "All questions can be written in the [Q&A chat](https://t.me/c/1864095672/2659).\n\n"
-        "Local coordinators are also available to help you. To find the contact details of your regional coordinator, "
-        "please reach out to the head of the coordinators: Gulfairuz teacher\n\n"
-        "Membership manager: Aizhan teacher\n\n"
-        "Once again, welcome to Kazaelt! We look forward to growing and learning with you."
     ), parse_mode="Markdown"
     )
     logger.info(f"Приветственное сообщение отправлено пользователю {chat_id}")
